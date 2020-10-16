@@ -2,14 +2,20 @@
 
 })();
 
-// TODO: NG
 // 3-1. 配列からMapを作る
+// 不正解!!
 (function () {
 
-  function mapFromArray<T>(arr: T[], key: keyof T) {
+  // NG!! 戻り値がMap<any, any>
+  // function mapFromArray<T>(arr: T[], key: keyof T) {
 
-    // libのバージョンアップ？
+  // OK!!
+  function mapFromArray<T, K extends keyof T>(arr: T[], key: K): Map<T[K], T> {
+    // MapはES2015(ES6)から使用可能
+    // 引数を省略して、下記を使う形でもOK
+    // const result = new Map<T[K], T>()
     const result = new Map();
+
     for (const obj of arr) {
       result.set(obj[key], obj);
     }
@@ -23,6 +29,7 @@
     { id: 100, name: "Taro Yamada" }
   ];
   const dataMap = mapFromArray(data, "id");
+  console.log(dataMap);
   /*
   dataMapは
   Map {
@@ -34,17 +41,23 @@
   */
 
   // エラー例
-  mapFromArray(data, "age");
+  // mapFromArray(data, "age");
 
 })();
 
-// TODO: NG
+
 // 3-2. Partial
 (function () {
 
-  type MyPartial<T> = {
-    t?: keyof T,
-  }
+  // 不正解!!!
+  // type MyPartial<T> = {
+  //   t?: keyof T,
+  // }
+
+  // 正解!!!
+  // TODO: {[P in K]: T}という記法は、Mapped Typeというらしい。
+  // https://qiita.com/Quramy/items/e27a7756170d06bef22a
+  type MyPartial<T> = { [K in keyof T]?: T[K] };
 
   // 使用例
   /*
@@ -54,8 +67,8 @@
     foo: number;
     bar: string;
   }>;
-  //const t1: T1 = { foo: 1, bar: "a" };
-  const t1: T1 = {t:"foo"}
+  const t1: T1 = { foo: 1, bar: "a" };
+  // const t1: T1 = {t:"foo"}
 
   /*
   * T2は { hoge?: { piyo: number; } } となる
@@ -67,7 +80,6 @@
   }>;
 })();
 
-// TODO: NG
 // 3-3. イベント
 (function () {
 
@@ -83,30 +95,36 @@
   }
 
 
-  // class EventDischarger<E, U=keyof E> {
+  // 不正解!!!
+  // class EventDischarger<E, U = keyof E> {
   //   emit(eventName: U, payload: E[U] ) {
-  //     // 省略
   //   }
   // }
 
-  // // 使用例
-  // const ed = new EventDischarger<EventPayloads>();
-  // ed.emit("start", {
-  //   user: "user1"
-  // });
-  // ed.emit("stop", {
-  //   user: "user1",
-  //   after: 3
-  // });
-  // ed.emit("end", {});
+  // 正解!!
+  class EventDischarger<E>{
+    emit<Ev extends keyof E>(eventName: Ev, payload: E[Ev]) {
+    }
+  }
 
-  // // エラー例
+  // 使用例
+  const ed = new EventDischarger<EventPayloads>();
+  ed.emit("start", {
+    user: "user1"
+  });
+  ed.emit("stop", {
+    user: "user1",
+    after: 3
+  });
+  ed.emit("end", {});
+
+  // エラー例
   // ed.emit("start", {
   //   user: "user2",
   //   after: 0
   // });
   // ed.emit("stop", {
-  //   user: "user2"
+  //   user: "user2",
   // });
   // ed.emit("foobar", {
   //   foo: 123
