@@ -1,0 +1,9 @@
+{
+  "name": "training_type",
+  "version": "",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.0.3"
+  }
+}
